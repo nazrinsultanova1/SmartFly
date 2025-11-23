@@ -1,0 +1,6 @@
+"models/random_forest_model.pkl" 
+"*.pkl" 
+"models/" 
+"__pycache__/" 
+"*.pyc" 
+".DS_Store" 

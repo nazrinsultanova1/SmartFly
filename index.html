@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Price Predictor - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ css_version }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="nav-container">
+                <h1 class="logo"><i class="fas fa-plane"></i> SMARTFLY</h1>
+                <nav>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#models" class="nav-link">Models</a>
+                </nav>
+            </div>
+        </header>
+
+        <section class="hero clean-card">
+            <div class="hero-content">
+                <h1 class="hero-title">SMART FLIGHT PRICE PREDICTION</h1>
+                <p class="hero-subtitle">AI-powered predictions for the best flight deals across India</p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-icon"><i class="fas fa-bullseye"></i></div>
+                        <h3>98.3%</h3>
+                        <p>Accuracy</p>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon"><i class="fas fa-database"></i></div>
+                        <h3>300K+</h3>
+                        <p>Data Points</p>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon"><i class="fas fa-paper-plane"></i></div>
+                        <h3>6+</h3>
+                        <p>Airlines</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="about clean-card">
+            <h2 class="clean-title"><i class="fas fa-tasks"></i> OUR MISSION</h2>
+            <div class="about-content">
+                <p>We use advanced machine learning to predict flight prices with incredible accuracy. Our system analyzes thousands of flights to help you find the best deals!</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                        <h4>AI-POWERED</h4>
+                        <p>Machine learning algorithms</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                        <h4>REAL-TIME</h4>
+                        <p>Instant 30-day predictions</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon"><i class="fas fa-money-bill-wave"></i></div>
+                        <h4>SAVE MONEY</h4>
+                        <p>Find the best booking times</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="models" class="models clean-card">
+            <h2 class="clean-title"><i class="fas fa-chart-bar"></i> MODEL PERFORMANCE</h2>
+            <div class="model-comparison">
+                <table class="model-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>R² Score</th>
+                            <th>RMSE</th>
+                            <th>MAE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for model_name, scores in models.items() %}
+                        <tr class="{% if model_name == 'RandomForest' %}best-model{% endif %}">
+                            <td class="model-name">{{ model_name }}</td>
+                            <td class="score">{{ "%.4f"|format(scores.R2) }}</td>
+                            <td class="score">{{ "%.2f"|format(scores.RMSE) }}</td>
+                            <td class="score">{{ "%.2f"|format(scores.MAE) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="why-best">
+                <h3><i class="fas fa-star"></i> WHY RANDOMFOREST WINS</h3>
+                <div class="reasons">
+                    <div class="reason">
+                        <span class="reason-emoji"><i class="fas fa-tree"></i></span>
+                        <p>Handles complex patterns in flight data</p>
+                    </div>
+                    <div class="reason">
+                        <span class="reason-emoji"><i class="fas fa-shield-alt"></i></span>
+                        <p>Robust against price outliers</p>
+                    </div>
+                    <div class="reason">
+                        <span class="reason-emoji"><i class="fas fa-check-circle"></i></span>
+                        <p>Best accuracy for price prediction</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <a href="{{ url_for('predict_page') }}" class="floating-btn clean-btn">
+            <i class="fas fa-paper-plane"></i> PREDICT PRICES
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.feature, .stat, .model-table tr');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        });
+    </script>
+</body>
+</html>

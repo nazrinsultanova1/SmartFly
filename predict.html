@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Price Predictor - Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .chart-container {
+            width: 100%;
+            min-height: 500px !important;
+        }
+        .chart-wrapper {
+            height: 450px !important;
+            position: relative;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ css_version }}">
+</head>
+<body class="predict-page">
+    <div class="container">
+        <header class="header">
+            <div class="nav-container">
+                <h1 class="logo"><i class="fas fa-plane"></i> SMARTFLY</h1>
+                <nav>
+                    <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+                    <a href="#results" class="nav-link">Results</a>
+                </nav>
+            </div>
+        </header>
+
+        <section class="prediction-form clean-card">
+            <h2 class="clean-title"><i class="fas fa-ticket-alt"></i> PREDICT FLIGHT PRICES</h2>
+            <p class="form-subtitle">Fill in your flight details and see prices for the next 30 days!</p>
+            
+            <form id="predictionForm" class="flight-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="flight_date" class="form-label"><i class="fas fa-calendar-alt"></i> Flight Date</label>
+                        <input type="date" id="flight_date" name="flight_date" class="clean-input" 
+                               min="{{ min_date }}" max="{{ max_date }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="airline" class="form-label"><i class="fas fa-plane-departure"></i> Airline</label>
+                        <select id="airline" name="airline" class="clean-select" required>
+                            <option value="">Choose Airline</option>
+                            <option value="SpiceJet">SpiceJet</option>
+                            <option value="AirAsia">AirAsia</option>
+                            <option value="Vistara">Vistara</option>
+                            <option value="GO_FIRST">GO FIRST</option>
+                            <option value="Indigo">Indigo</option>
+                            <option value="Air_India">Air India</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="source_city" class="form-label"><i class="fas fa-map-marker-alt"></i> From</label>
+                        <select id="source_city" name="source_city" class="clean-select" required>
+                            <option value="">Departure City</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Bangalore">Bangalore</option>
+                            <option value="Kolkata">Kolkata</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Chennai">Chennai</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="destination_city" class="form-label"><i class="fas fa-map-pin"></i> To</label>
+                        <select id="destination_city" name="destination_city" class="clean-select" required>
+                            <option value="">Destination City</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Bangalore">Bangalore</option>
+                            <option value="Kolkata">Kolkata</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Chennai">Chennai</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="departure_time" class="form-label"><i class="fas fa-clock"></i> Time</label>
+                        <select id="departure_time" name="departure_time" class="clean-select" required>
+                            <option value="">Departure Time</option>
+                            <option value="Early_Morning">Early Morning</option>
+                            <option value="Morning">Morning</option>
+                            <option value="Afternoon">Afternoon</option>
+                            <option value="Evening">Evening</option>
+                            <option value="Night">Night</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stops" class="form-label"><i class="fas fa-route"></i> Stops</label>
+                        <select id="stops" name="stops" class="clean-select" required>
+                            <option value="">Number of Stops</option>
+                            <option value="zero">Non-stop</option>
+                            <option value="one">1 Stop</option>
+                            <option value="two_or_more">2+ Stops</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="class" class="form-label"><i class="fas fa-chair"></i> Class</label>
+                        <select id="class" name="class" class="clean-select" required>
+                            <option value="">Travel Class</option>
+                            <option value="Economy">Economy</option>
+                            <option value="Business">Business</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="predict-btn clean-btn">
+                    <i class="fas fa-chart-line"></i> PREDICT 30 DAYS OF PRICES
+                </button>
+            </form>
+        </section>
+
+        <section id="results" class="results-section clean-card" style="display: none;">
+            <h2 class="clean-title"><i class="fas fa-table"></i> PREDICTION RESULTS</h2>
+            <div class="route-info" id="routeInfo"></div>
+            
+            <div class="results-container">
+                <div class="chart-container clean-card">
+                    <h3 class="chart-title"><i class="fas fa-chart-area"></i> PRICE TREND (30 DAYS)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="price-table-container" style="margin-top: 2rem;">
+                <h3 class="table-title"><i class="fas fa-dollar-sign"></i> PRICE FORECAST</h3>
+                <table class="price-table" id="priceTable">
+                    <thead>
+                        <tr>
+                            <th>Days Ahead</th>
+                            <th>Flight Date</th>
+                            <th>Price (USD)</th>
+                            <th>Price (INR)</th>
+                            <th>Price Level</th>
+                        </tr>
+                    </thead>
+                    <tbody id="priceTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="insights clean-card">
+                <h3 class="insights-title"><i class="fas fa-lightbulb"></i> SMART INSIGHTS</h3>
+                <div class="insights-grid" id="insightsGrid"></div>
+            </div>
+        </section>
+
+        <div class="loading clean-card" id="loading" style="display: none;">
+            <div class="loading-plane"><i class="fas fa-plane-up"></i></div>
+            <p class="loading-text">Analyzing flight patterns...</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const form = document.getElementById('predictionForm');
+        const resultsSection = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        const priceTableBody = document.getElementById('priceTableBody');
+        const routeInfo = document.getElementById('routeInfo');
+        const insightsGrid = document.getElementById('insightsGrid');
+
+        let priceChart = null;
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('flight_date').value = today;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            
+            loading.style.display = 'block';
+            resultsSection.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        function displayResults(result) {
+            routeInfo.innerHTML = `
+                <h3>${result.route}</h3>
+                <p>${result.airline} • ${result.flight_class} • ${result.departure_time}</p>
+                <p><strong>30-Day Price Forecast</strong></p>
+            `;
+            
+            priceTableBody.innerHTML = '';
+            result.predictions.forEach(pred => {
+                const row = document.createElement('tr');
+                row.className = `price-row ${pred.price_category.toLowerCase()}`;
+                row.innerHTML = `
+                    <td>${pred.days_until_flight}</td>
+                    <td>${pred.flight_date}</td>
+                    <td>$${pred.price_usd}</td>
+                    <td>₹${pred.price_inr}</td>
+                    <td>
+                        <span class="price-tag ${pred.price_category.toLowerCase()}">
+                            ${pred.price_category.toUpperCase()}
+                        </span>
+                    </td>
+                `;
+                priceTableBody.appendChild(row);
+            });
+            
+            createChart(result.predictions);
+            generateInsights(result.predictions);
+            
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+            animateTableRows();
+        }
+
+        function createChart(predictions) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const prices = predictions.map(p => p.price_usd);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+
+            function getPointColor(price) {
+                if (price === minPrice) return '#8fd16a';
+                if (price === maxPrice) return '#ff6e87';
+                return '#55a8f5';
+            }
+
+            if (priceChart) {
+                priceChart.destroy();
+            }
+            
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: predictions.map(p => `Day ${p.days_until_flight}`),
+                    datasets: [{
+                        label: 'Price (USD)',
+                        data: prices,
+                        borderColor: '#55a8f5',
+                        backgroundColor: 'rgba(85, 168, 245, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: prices.map(getPointColor),
+                        pointBorderColor: prices.map(getPointColor),
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Price: $${context.parsed.y.toFixed(2)}`;
+                                }
+                            },
+                            bodyFont: {
+                                size: 14
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: '#eee'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateInsights(predictions) {
+            const prices = predictions.map(p => p.price_usd);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const bestDay = predictions.find(p => p.price_usd === minPrice);
+            const worstDay = predictions.find(p => p.price_usd === maxPrice);
+            const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+            
+            insightsGrid.innerHTML = `
+                <div class="insight-card best">
+                    <h4><i class="fas fa-hand-holding-usd"></i> BEST DAY</h4>
+                    <p>Day ${bestDay.days_until_flight} (${bestDay.flight_date})</p>
+                    <p class="price">$${bestDay.price_usd}</p>
+                    <p>Save $${(maxPrice - minPrice).toFixed(2)}!</p>
+                </div>
+                <div class="insight-card worst">
+                    <h4><i class="fas fa-exclamation-triangle"></i> WORST DAY</h4>
+                    <p>Day ${worstDay.days_until_flight} (${worstDay.flight_date})</p>
+                    <p class="price">$${worstDay.price_usd}</p>
+                    <p>Most expensive</p>
+                </div>
+                <div class="insight-card avg">
+                    <h4><i class="fas fa-calculator"></i> AVERAGE</h4>
+                    <p>30-day average price</p>
+                    <p class="price">$${avgPrice.toFixed(2)}</p>
+                    <p>Typical price</p>
+                </div>
+                <div class="insight-card save">
+                    <h4><i class="fas fa-piggy-bank"></i> SAVINGS</h4>
+                    <p>Potential to save</p>
+                    <p class="price">$${(maxPrice - minPrice).toFixed(2)}</p>
+                    <p>Book smart!</p>
+                </div>
+            `;
+        }
+
+        function animateTableRows() {
+            const rows = document.querySelectorAll('.price-row');
+            rows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    row.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateX(0)';
+                }, index * 50);
+            });
+        }
+    </script>
+</body>
+</html>
